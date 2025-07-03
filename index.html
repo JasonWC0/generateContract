@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>合約與報價單產生</title>
+	<style>
+		body {
+			font-family: sans-serif;
+			max-width: 600px;
+			margin: 2rem auto;
+		}
+
+		label {
+			display: block;
+			margin-bottom: 1rem;
+		}
+
+		input {
+			width: 100%;
+			padding: 6px;
+			font-size: 16px;
+		}
+
+		input[readonly] {
+			background: #eee;
+		}
+
+		button {
+			padding: 10px 20px;
+			font-size: 16px;
+		}
+
+		.response {
+			margin-top: 1rem;
+			white-space: pre-wrap;
+			background: #000;
+			color: #0f0;
+			padding: 1rem;
+			border: 1px solid #ccc;
+		}
+
+		.download-link {
+			display: inline-block;
+			margin-top: 1rem;
+			padding: 10px 16px;
+			background: #28a745;
+			color: #fff;
+			text-decoration: none;
+			font-weight: bold;
+			border-radius: 4px;
+		}
+	</style>
+</head>
+
+<body>
+	<h2>產生合約與報價單</h2>
+	<form id="contractForm">
+		<label>Site ID: <input type="text" name="siteId" value="2400266-H-01" required /></label>
+		<label>Contract Type: <input type="number" name="contractType" value="15" required /></label>
+		<label>Quantity: <input type="number" name="quantity" value="1" required /></label>
+		<label>Start Date: <input type="date" name="startDate" value="2025-10-01" required /></label>
+		<label>End Date: <input type="date" name="endDate" value="2027-09-30" required /></label>
+		<label>
+			Duration (自動計算月份):
+			<input type="number" name="duration" id="duration" readonly />
+		</label>
+		<label>Specific Price: <input type="number" name="specificPrice" value="0" required /></label>
+		<button type="submit">送出</button>
+	</form>
+
+	<div class="response" id="response"></div>
+
+	<script>
+		function calculateDurationInMonths(startDateStr, endDateStr) {
+			const start = new Date(startDateStr);
+			const end = new Date(endDateStr);
+			const years = end.getFullYear() - start.getFullYear();
+			const months = end.getMonth() - start.getMonth();
+			return years * 12 + months + 1;
+		}
+
+		function updateDuration() {
+			const startDate = document.querySelector('input[name="startDate"]').value;
+			const endDate = document.querySelector('input[name="endDate"]').value;
+			const durationField = document.getElementById('duration');
+
+			if (startDate && endDate) {
+				const duration = calculateDurationInMonths(startDate, endDate);
+				durationField.value = duration >= 0 ? duration : 0;
+			}
+		}
+
+		document.querySelector('input[name="startDate"]').addEventListener('change', updateDuration);
+		document.querySelector('input[name="endDate"]').addEventListener('change', updateDuration);
+		window.addEventListener('DOMContentLoaded', updateDuration);
+
+		document.getElementById('contractForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const formData = new FormData(e.target);
+			const data = Object.fromEntries(formData.entries());
+
+			data.contractType = Number(data.contractType);
+			data.quantity = Number(data.quantity);
+			data.duration = Number(data.duration); // 自動計算值
+			data.specificPrice = Number(data.specificPrice);
+
+			const responseBox = document.getElementById('response');
+			responseBox.textContent = '⌛ 處理中，請稍候...';
+
+			try {
+				const response = await fetch('http://localhost:3000/createContract', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(data),
+				});
+
+				const result = await response.json();
+
+				if (response.ok) {
+					responseBox.innerHTML = `
+            ✅ <strong>${result.message}</strong><br>
+            <a class="download-link" href="${result.downloadUrl}" download target="_blank">
+              ⬇️ 點我下載 PDF
+            </a>
+          `;
+				} else {
+					responseBox.textContent = '❌ 錯誤：' + (result.error || '未知錯誤');
+				}
+			} catch (error) {
+				responseBox.textContent = '❌ 發生錯誤：' + error;
+			}
+		});
+	</script>
+</body>
+
+</html>
