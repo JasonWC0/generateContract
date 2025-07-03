@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs/promises';
 import { generateContract } from './generateContract'; // 你自己的邏輯模組
 
 const app = express();
@@ -12,7 +13,7 @@ app.use(cors());
 // ✅ 靜態開放 renewContract/files 底下所有 PDF 檔案
 app.use('/download', express.static(path.join(process.cwd(), 'renewContract', 'files')));
 
-app.post('/createContract', async (req, res) => {
+app.post('/createContract', async (req:any, res:any, next) => {
   const {
     siteId,
     contractType,
@@ -21,10 +22,20 @@ app.post('/createContract', async (req, res) => {
     startDate,
     endDate,
     specificPrice,
+    encryptKey, // <== 來自前端密碼欄位
   } = req.body;
 
+  if (!encryptKey) {
+    return res.status(400).json({ error: '缺少 encryptKey' });
+  }
+
   try {
-    // ✅ 呼叫 generateContract 並取得相對路徑（範例：2025-7-H/xxx.pdf）
+    // ✅ 將 encryptKey 寫入 .env（覆蓋寫入）
+    const envPath = path.join(process.cwd(), '.env');
+    const content = `DB_ENCRYPT_KEY=${encryptKey}\n`;
+    await fs.writeFile(envPath, content, 'utf8');
+
+    // ✅ 呼叫 generateContract 並取得相對路徑
     const relativePath = await generateContract(
       siteId,
       Number(contractType),
@@ -35,16 +46,13 @@ app.post('/createContract', async (req, res) => {
       Number(specificPrice)
     );
 
-    // ✅ 拆出檔名與資料夾
-    const filename = path.basename(relativePath);           // e.g. 檔名.pdf
-    const subfolder = path.dirname(relativePath);           // e.g. 2025-7-H
-    const encodedFilename = encodeURIComponent(filename);   // 編碼中文檔名
-
-    // ✅ 組成前端可用的下載連結
+    const filename = path.basename(relativePath);
+    const subfolder = path.dirname(relativePath);
+    const encodedFilename = encodeURIComponent(filename);
     const downloadUrl = `http://localhost:${port}/download/${subfolder}/${encodedFilename}`;
 
     res.json({
-      message: '✅ 合約與報價單已成功產生！',
+      message: '✅ 合約與報價單已成功產生，金鑰也已更新！',
       downloadUrl
     });
 
