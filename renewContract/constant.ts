@@ -162,14 +162,14 @@ export const PRODUCT_LINE_NAME = new Map<string, string>([
   ['D', '日照服務系統']
 ]);
 
-export const RENEW_CONTRACT_TEMPLATE_PATH = 'report/renewContract/template';
-export const RENEW_CONTRACT_IMG_PATH = 'report/renewContract/img';
+export const RENEW_CONTRACT_TEMPLATE_PATH = 'renewContract/template';
+export const RENEW_CONTRACT_IMG_PATH = 'renewContract/img';
 export const CONTRACTILE_ONE_LINE_CHARACTERS = 22;
-export const QUOTATION_TEMPLATE_PATH = './report/renewContract/templates/quotationTemplate2.pdf';
-export const SUBSCRIPTION_TEMPLATE_PATH = './report/renewContract/templates/subscriptionTemplate.pdf';
-export const RENEW_CONTRACT_FILE_PATH = './report/renewContract/files/';
-export const MSJH_FONT_FILE_PATH = './report/renewContract/fonts/msjh.ttf';
-export const KAIU_FONT_FILE_PATH = './report/renewContract/fonts/kaiu.ttf';
+export const QUOTATION_TEMPLATE_PATH = 'renewContract/templates/quotationTemplate2.pdf';
+export const SUBSCRIPTION_TEMPLATE_PATH = 'renewContract/templates/subscriptionTemplate.pdf';
+export const RENEW_CONTRACT_FILE_PATH = 'renewContract/files/';
+export const MSJH_FONT_FILE_PATH = 'renewContract/fonts/msjh.ttf';
+export const KAIU_FONT_FILE_PATH = 'renewContract/fonts/kaiu.ttf';
 
 export const PRODUCT_LINE_TYPE = {
   HOME_CARE: 'H',

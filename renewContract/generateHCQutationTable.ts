@@ -14,8 +14,8 @@ import {
   PRICE_DIFFERENCES
 } from './constant';
 // ---------------------------------------- import * from tools ----------------------------------------
-import { screenshotTableBuffer } from '../../tools/screenShotBrowser';
-import { EMPTY_ARRAY_LENGTH } from '../../tools/constant';
+import { screenshotTableBuffer } from '../screenShotBrowser';
+import { EMPTY_ARRAY_LENGTH } from '../constant';
 // ---------------------------------------- import * from util ----------------------------------------
 import { generateServiceRows } from './util';
 // ---------------------------------------- export function ----------------------------------------

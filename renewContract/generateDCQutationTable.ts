@@ -13,7 +13,7 @@ import {
   TAX_RATE
 } from './constant';
 // ---------------------------------------- import * from tools ----------------------------------------
-import { screenshotTableBuffer } from '../../tools/screenShotBrowser';
+import { screenshotTableBuffer } from '../screenShotBrowser';
 import { generateServiceRows, generateTableRow } from './util';
 
 // ---------------------------------------- export function ----------------------------------------

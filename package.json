@@ -10,8 +10,11 @@
 		"@types/mongodb": "3.6.12",
 		"@types/nodemailer": "6.4.8",
 		"@types/xlsx-populate": "git+https://github.com/JanLoebel/types-xlsx-populate.git",
+		"dotenv": "^17.0.1",
+		"mongodb": "^3.6.12",
 		"pdf-fontkit": "^1.8.9",
-		"pdf-lib": "^1.17.1"
+		"pdf-lib": "^1.17.1",
+		"puppeteer": "^19.11.1"
 	},
 	"devDependencies": {
 		"@types/fontkit": "^2.0.7",

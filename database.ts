@@ -1,32 +1,57 @@
 /*
  * FeaturePath: 自動報表產製-工具庫-資料庫-資料庫操作
- * Accountable: Hilbert Huang, Tang Chuang
+ * Accountable: Tang Chuang, Jason Kao
  */
+
 // ---------------------------------------- import * from node_modules ----------------------------------------
 import fs from 'fs';
 import { MongoClient } from 'mongodb';
 import { DB_TYPE } from './enums';
+import * as dotenv from 'dotenv';
+import * as crypto from 'crypto';
 
-const DB_URL =
-  'mongodb://lunaWorker:RrFuA9xX7@10.109.35.167:32018/?authSource=luna_web&authMechanism=SCRAM-SHA-1&connectTimeoutMS=4800000&socketTimeoutMS=4800000';
-const DB_NAME = 'luna_web';
+dotenv.config(); // ⬅️ 載入 .env 中的金鑰
+
+// ---------------------------------------- constant ----------------------------------------
+const ERP_STAGING = 'compalswhq-175501';
+const ERP_STAGING_DB_ID = '5665841866943586520';
+const ZONE = 'asia-east1-b';
+const REPLACE_IP_TARGET = '{}';
 
 let _client: any = null;
 let _database: any = null;
 
+// ---------------------------------------- helper: 解密加密後的 db.enc.json ----------------------------------------
+function getDecryptedDBJson(): any {
+  const secret = process.env.DB_ENCRYPT_KEY;
+  if (!secret) {
+    throw new Error('❌ 缺少 DB_ENCRYPT_KEY（請檢查 .env）');
+  }
+
+  const key = crypto.scryptSync(secret, 'salt', 32);
+  const encrypted = JSON.parse(fs.readFileSync('db.enc.json', 'utf-8'));
+  const iv = Buffer.from(encrypted.iv, 'hex');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+
+  let decrypted = decipher.update(encrypted.data, 'hex', 'utf-8');
+  decrypted += decipher.final('utf-8');
+  return JSON.parse(decrypted);
+}
+
+// ---------------------------------------- class: DefaultDBNative ----------------------------------------
+
 export class DefaultDBNative {
   static async tryConnect() {
     try {
-      const dbUrl = DB_URL;
-      const dbName = DB_NAME;
+      const dbInfo = this.getDBInfo('db.enc.json', 'lunaWebDB');
       const options = {
         useNewUrlParser: true,
         useUnifiedTopology: true
       };
-      const mongoClient = await MongoClient.connect(dbUrl, options);
-      _database = mongoClient.db(dbName);
+      const mongoClient = await MongoClient.connect(dbInfo.url, options);
+      _database = mongoClient.db(dbInfo.name);
     } catch (err) {
-      // err
+      console.error('❌ 無法連線至 MongoDB:', err);
     }
   }
 
@@ -38,23 +63,24 @@ export class DefaultDBNative {
   }
 
   /*
-   * 和luna_web資料庫連線
-   * @ return {any} _database資料庫物件
+   * 和 luna_web 資料庫連線
    */
   static async getLunaWebDB(type = DB_TYPE.UAT) {
     if (!_database) {
       try {
         let dbInfo;
+        let dbUrl;
         switch (type) {
           case DB_TYPE.PROD:
-            dbInfo = this.getDBInfo('./tools/db.json', 'lunaProdDB');
+            dbInfo = this.getDBInfo('db.enc.json', 'lunaProdDB');
             break;
           case DB_TYPE.UAT:
-            dbInfo = this.getDBInfo('./tools/db.json', 'lunaWebDB');
+            dbInfo = this.getDBInfo('db.enc.json', 'lunaWebDB');
             break;
           default:
-            dbInfo = this.getDBInfo('./tools/db.json', 'lunaWebDB');
+            dbInfo = this.getDBInfo('db.enc.json', 'lunaWebDB');
         }
+
         const options = {
           useNewUrlParser: true,
           useUnifiedTopology: true
@@ -62,20 +88,19 @@ export class DefaultDBNative {
         _client = await MongoClient.connect(dbInfo.url, options);
         _database = _client.db(dbInfo.name);
       } catch (err) {
-        // err
+        console.error('❌ 連線 LunaWebDB 失敗:', err);
       }
     }
     return _database;
   }
 
   /*
-   * 和SystemLog資料庫連線
-   * @ return {any} _database 資料庫物件
+   * 連線 SystemLog 資料庫
    */
   static async getSystemLogDB() {
     if (!_database) {
       try {
-        const dbInfo = this.getDBInfo('./tools/db.json', 'systemLogDB');
+        const dbInfo = this.getDBInfo('db.enc.json', 'systemLogDB');
         const options = {
           useNewUrlParser: true,
           useUnifiedTopology: true
@@ -83,29 +108,36 @@ export class DefaultDBNative {
         _client = await MongoClient.connect(dbInfo.url, options);
         _database = _client.db(dbInfo.name);
       } catch (err) {
-        // err
+        console.error('❌ 連線 SystemLogDB 失敗:', err);
       }
     }
     return _database;
   }
 
   /*
-   * 到db.json中讀取指定database的資訊(url & name)
-   * @param {string} file 檔案名稱
-   * @param {string} db 資料庫名稱
-   * @return {object} 指定資料庫的資訊
+   * 從 JSON（明文或加密）中讀取資料庫資訊
    */
   static getDBInfo(file: string, db: string) {
-    const fin = fs.readFileSync(file, 'utf-8');
-    const json = JSON.parse(fin);
+    let json;
+    if (file.includes('.enc.')) {
+      json = getDecryptedDBJson();
+    } else {
+      const fin = fs.readFileSync(file, 'utf-8');
+      json = JSON.parse(fin);
+    }
+
+    if (!json[db]) {
+      throw new Error(`❌ 找不到資料庫設定：${db}`);
+    }
     return json[db];
   }
 
-  /*
-   * 關閉目前的資料庫連線
-   */
+  static getCurrDb() {
+    return _database;
+  }
+
   static async closeDatabase() {
     _database = null;
-    _client.close();
+    await _client?.close();
   }
 }
