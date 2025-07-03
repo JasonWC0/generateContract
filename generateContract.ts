@@ -9,7 +9,7 @@ import moment from 'moment';
 import fontkit from 'pdf-fontkit';
 import { PDFDocument, TextAlignment } from 'pdf-lib';
 // ---------------------------------------- import * from tools ----------------------------------------
-import { DefaultDBNative as db } from '../database';
+import { DefaultDBNative as db } from './database';
 import * as fs from 'fs';
 import {
   addChangeLineSymbol,
@@ -18,8 +18,8 @@ import {
   getContractsPlanedToRenew,
   getCustomerInvoiceSettings,
   getLatestProfile
-} from './tool';
-import { CONTRACT_STATUS, DB_TYPE, MomentConf, TimeConf } from '../enums';
+} from './renewContract/tool';
+import { CONTRACT_STATUS, DB_TYPE, MomentConf, TimeConf } from './enums';
 // ---------------------------------------- import * from constant ----------------------------------------
 import {
   CONTRACT_TYPE,
@@ -45,14 +45,14 @@ import {
   MINIUM_TOLERATE_NUMBER,
   TOLERATE_RATE,
   HCAdditionalSubProductInfoMap
-} from './constant';
+} from './renewContract/constant';
 // ---------------------------------------- import * from enums ----------------------------------------
-import { collectionEnums } from '../renewContract/enums/collection_codes';
+import { collectionEnums } from './renewContract/enums/collection_codes';
 // ---------------------------------------- import * from report/renewContract/generateContracts ----------------------------------------
-import { generateHomeCareTable } from './generateHCQutationTable';
-import { calculateDayCareMonthlyRent, generateDaycareTable } from './generateDCQutationTable';
+import { generateHomeCareTable } from './renewContract/generateHCQutationTable';
+import { calculateDayCareMonthlyRent, generateDaycareTable } from './renewContract/generateDCQutationTable';
 // ---------------------------------------- import * from tools/constant ----------------------------------------
-import { EMPTY_ARRAY_LENGTH, EMPTY_STRING, OFFSET_ONE, ZERO_BASE_TO_ONE_BASE } from '../constant';
+import { EMPTY_ARRAY_LENGTH, EMPTY_STRING, OFFSET_ONE, ZERO_BASE_TO_ONE_BASE } from './constant';
 // ---------------------------------------- function ----------------------------------------
 /**
  * 計算報價單價格
@@ -134,7 +134,7 @@ function judgePreviousContractType(previousMaxMembers: number) {
  * @param {Array<{ siteId: string; contractType: number; quantity: number }>} specificSite 特定站
  * @returns
  */
-async function generateQuotationData(
+export async function generateQuotationData(
   lunaDB: any,
   year: number = new Date().getFullYear(),
   month: number = new Date().getMonth() + 1,
@@ -481,14 +481,60 @@ async function fillFormFields(
       await fs.mkdirSync(path.dirname(quotation.filePath), { recursive: true });
     }
     await fs.promises.writeFile(quotation.filePath, pdfBytes);
-    console.log('pdf generated', quotation.contractTitle);
+	return quotation.filePath
   }
 }
 /**
  * 主程式
  * @returns {Promise<void>}
  */
-async function main(
+export async function generateContract(
+  siteId: string,
+  contractType: number,
+  quantity: number,
+  duration: number,
+  startDate: string ,
+  endDate: string,
+  specificPrice: number,
+) {
+  const nodeEnv = process.env.NODE_ENV || DB_TYPE.PROD;
+  // STEP_01 DB 連線
+  const lunaDB = await db.getLunaWebDB(nodeEnv as DB_TYPE);
+  // STEP_02 產生指定站的報價單和訂閱合約資訊
+  // (siteId, contractType, quantity) contractType = 0 和 quantity = 0 代表使用預估的合約類型與數量
+  const { quotationData, subscriptionData } = await generateQuotationData(lunaDB, undefined, undefined, [
+    {
+      siteId,
+      contractType,
+      quantity,
+      duration,
+      startDate,
+      endDate,
+      specificPrice
+    }
+  ]);
+  //(25-05-01~27-04-30)
+  // STEP_02 產生指定月份的報價單和訂閱合約資訊
+  //  const { quotationData, subscriptionData } = await generateQuotationData(lunaDB, specificYear, specificMonth, []);
+  // STEP_03 填寫報價單表單欄位
+  await fillFormFields(quotationData, path.join(process.cwd(), QUOTATION_TEMPLATE_PATH), QUOTATION_FONTS_SETTING);
+  // STEP_04 填寫訂閱合約表單欄位
+  let output_path=await fillFormFields(
+    subscriptionData,
+    path.join(process.cwd(), SUBSCRIPTION_TEMPLATE_PATH),
+    SUBSCRIPTION_FORM_FONTS_SETTING,
+    KAIU_FONT_FILE_PATH
+  );
+  console.log('Quotation PDFs generated successfully');
+  // STEP_04 關閉 DB 連線
+  console.log('Contract generated successfully:', output_path);
+  await db.closeDatabase();
+  return path.relative(
+    path.join(process.cwd(), 'renewContract', 'files'),
+    output_path
+  );
+}
+async function generateMonthContract(
   specificMonth: number = new Date().getMonth() + ZERO_BASE_TO_ONE_BASE,
   specificYear: number = new Date().getFullYear()
 ) {
@@ -524,5 +570,4 @@ async function main(
   // STEP_04 關閉 DB 連線
   await db.closeDatabase();
 }
-
-if (require.main === module) main(6, 2025);
+//if (require.main === module) generateMonthContract(6, 2025);
