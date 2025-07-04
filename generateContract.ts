@@ -481,7 +481,7 @@ async function fillFormFields(
       await fs.mkdirSync(path.dirname(quotation.filePath), { recursive: true });
     }
     await fs.promises.writeFile(quotation.filePath, pdfBytes);
-	return quotation.filePath
+	return quotation.filePath.replace(/\\/g, '-')
   }
 }
 /**
