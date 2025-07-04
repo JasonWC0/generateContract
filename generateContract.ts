@@ -386,8 +386,7 @@ export async function generateQuotationData(
       filePath: path.join(
         process.cwd(),
         RENEW_CONTRACT_FILE_PATH,
-        `${year}-${month}-${renewContract.PL}`,
-        `${renewContract.ID}${contractTitle}訂閱合約.pdf`
+        `${year}-${month}-${renewContract.PL}/${renewContract.ID}${contractTitle}訂閱合約.pdf`
       )
     };
     subscriptionData.push(subscription);
@@ -476,12 +475,14 @@ async function fillFormFields(
     }
 
     form.getFields().forEach((formField) => formField.enableReadOnly());
+	console.log('filename', quotation.filePath);
+	console.log('filePath', quotation.filePath);
     const pdfBytes = await pdfDoc.save(); // 儲存PDF
     if (!fs.existsSync(path.dirname(quotation.filePath))) {
       await fs.mkdirSync(path.dirname(quotation.filePath), { recursive: true });
     }
-    await fs.promises.writeFile(quotation.filePath.replace(/\\/g, '-'), pdfBytes);
-	return quotation.filePath.replace(/\\/g, '-')
+    await fs.promises.writeFile(quotation.filePath, pdfBytes);
+	return quotation.filePath
   }
 }
 /**
@@ -538,40 +539,40 @@ export async function generateContract(
     contractOutputPath
   ) };
 }
-async function generateMonthContract(
-  specificMonth: number = new Date().getMonth() + ZERO_BASE_TO_ONE_BASE,
-  specificYear: number = new Date().getFullYear()
-) {
-  const nodeEnv = process.env.NODE_ENV || DB_TYPE.UAT;
-  // STEP_01 DB 連線
-  const lunaDB = await db.getLunaWebDB(nodeEnv as DB_TYPE);
-  // STEP_02 產生指定站的報價單和訂閱合約資訊
-  // (siteId, contractType, quantity) contractType = 0 和 quantity = 0 代表使用預估的合約類型與數量
-  const { quotationData, subscriptionData } = await generateQuotationData(lunaDB, undefined, undefined, [
-    {
-      siteId: '2400266-H-01',
-      contractType: 15,
-      quantity: 1,
-      duration: 0,
-      startDate: '2025-10-01',
-      endDate: '2027-09-30',
-      specificPrice: 0
-    }
-  ]);
-  //(25-05-01~27-04-30)
-  // STEP_02 產生指定月份的報價單和訂閱合約資訊
-  //  const { quotationData, subscriptionData } = await generateQuotationData(lunaDB, specificYear, specificMonth, []);
-  // STEP_03 填寫報價單表單欄位
-  await fillFormFields(quotationData, path.join(process.cwd(), QUOTATION_TEMPLATE_PATH), QUOTATION_FONTS_SETTING);
-  // STEP_04 填寫訂閱合約表單欄位
-  await fillFormFields(
-    subscriptionData,
-    path.join(process.cwd(), SUBSCRIPTION_TEMPLATE_PATH),
-    SUBSCRIPTION_FORM_FONTS_SETTING,
-    KAIU_FONT_FILE_PATH
-  );
-  console.log('Quotation PDFs generated successfully');
-  // STEP_04 關閉 DB 連線
-  await db.closeDatabase();
-}
+//async function generateMonthContract(
+//  specificMonth: number = new Date().getMonth() + ZERO_BASE_TO_ONE_BASE,
+//  specificYear: number = new Date().getFullYear()
+//) {
+//  const nodeEnv = process.env.NODE_ENV || DB_TYPE.UAT;
+//  // STEP_01 DB 連線
+//  const lunaDB = await db.getLunaWebDB(nodeEnv as DB_TYPE);
+//  // STEP_02 產生指定站的報價單和訂閱合約資訊
+//  // (siteId, contractType, quantity) contractType = 0 和 quantity = 0 代表使用預估的合約類型與數量
+//  const { quotationData, subscriptionData } = await generateQuotationData(lunaDB, undefined, undefined, [
+//    {
+//      siteId: '2400266-H-01',
+//      contractType: 15,
+//      quantity: 1,
+//      duration: 0,
+//      startDate: '2025-10-01',
+//      endDate: '2027-09-30',
+//      specificPrice: 0
+//    }
+//  ]);
+//  //(25-05-01~27-04-30)
+//  // STEP_02 產生指定月份的報價單和訂閱合約資訊
+//  //  const { quotationData, subscriptionData } = await generateQuotationData(lunaDB, specificYear, specificMonth, []);
+//  // STEP_03 填寫報價單表單欄位
+//  await fillFormFields(quotationData, path.join(process.cwd(), QUOTATION_TEMPLATE_PATH), QUOTATION_FONTS_SETTING);
+//  // STEP_04 填寫訂閱合約表單欄位
+//  await fillFormFields(
+//    subscriptionData,
+//    path.join(process.cwd(), SUBSCRIPTION_TEMPLATE_PATH),
+//    SUBSCRIPTION_FORM_FONTS_SETTING,
+//    KAIU_FONT_FILE_PATH
+//  );
+//  console.log('Quotation PDFs generated successfully');
+//  // STEP_04 關閉 DB 連線
+//  await db.closeDatabase();
+//}
 //if (require.main === module) generateMonthContract(6, 2025);
