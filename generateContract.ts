@@ -517,9 +517,9 @@ export async function generateContract(
   // STEP_02 產生指定月份的報價單和訂閱合約資訊
   //  const { quotationData, subscriptionData } = await generateQuotationData(lunaDB, specificYear, specificMonth, []);
   // STEP_03 填寫報價單表單欄位
-  await fillFormFields(quotationData, path.join(process.cwd(), QUOTATION_TEMPLATE_PATH), QUOTATION_FONTS_SETTING);
+  const quotationOutputPath = await fillFormFields(quotationData, path.join(process.cwd(), QUOTATION_TEMPLATE_PATH), QUOTATION_FONTS_SETTING);
   // STEP_04 填寫訂閱合約表單欄位
-  let output_path=await fillFormFields(
+  let contractOutputPath = await fillFormFields(
     subscriptionData,
     path.join(process.cwd(), SUBSCRIPTION_TEMPLATE_PATH),
     SUBSCRIPTION_FORM_FONTS_SETTING,
@@ -527,12 +527,16 @@ export async function generateContract(
   );
   console.log('Quotation PDFs generated successfully');
   // STEP_04 關閉 DB 連線
-  console.log('Contract generated successfully:', output_path);
+  console.log('Contract generated successfully:', contractOutputPath);
   await db.closeDatabase();
-  return path.relative(
+  return { quotationOutputPath:path.relative(
     path.join(process.cwd(), 'renewContract', 'files'),
-    output_path
-  );
+    quotationOutputPath
+  ),
+	 contractOutputPath:path.relative(
+    path.join(process.cwd(), 'renewContract', 'files'),
+    contractOutputPath
+  ) };
 }
 async function generateMonthContract(
   specificMonth: number = new Date().getMonth() + ZERO_BASE_TO_ONE_BASE,

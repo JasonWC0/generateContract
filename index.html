@@ -1,56 +1,56 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 
-<head>
-	<meta charset="UTF-8" />
-	<title>合約與報價單產生</title>
-	<style>
-		body {
-			font-family: sans-serif;
-			max-width: 600px;
-			margin: 2rem auto;
-		}
+<link rel="icon" href="/favicon.png" type="image/png" />
+<meta charset="UTF-8" />
+<title>合約與報價單產生</title>
+<style>
+	body {
+		font-family: sans-serif;
+		max-width: 600px;
+		margin: 2rem auto;
+	}
 
-		label {
-			display: block;
-			margin-bottom: 1rem;
-		}
+	label {
+		display: block;
+		margin-bottom: 1rem;
+	}
 
-		input {
-			width: 100%;
-			padding: 6px;
-			font-size: 16px;
-		}
+	input {
+		width: 100%;
+		padding: 6px;
+		font-size: 16px;
+	}
 
-		input[readonly] {
-			background: #eee;
-		}
+	input[readonly] {
+		background: #eee;
+	}
 
-		button {
-			padding: 10px 20px;
-			font-size: 16px;
-		}
+	button {
+		padding: 10px 20px;
+		font-size: 16px;
+	}
 
-		.response {
-			margin-top: 1rem;
-			white-space: pre-wrap;
-			background: #000;
-			color: #0f0;
-			padding: 1rem;
-			border: 1px solid #ccc;
-		}
+	.response {
+		margin-top: 1rem;
+		white-space: pre-wrap;
+		background: #000;
+		color: #0f0;
+		padding: 1rem;
+		border: 1px solid #ccc;
+	}
 
-		.download-link {
-			display: inline-block;
-			margin-top: 1rem;
-			padding: 10px 16px;
-			background: #28a745;
-			color: #fff;
-			text-decoration: none;
-			font-weight: bold;
-			border-radius: 4px;
-		}
-	</style>
+	.download-link {
+		display: inline-block;
+		margin-top: 1rem;
+		padding: 10px 16px;
+		background: #28a745;
+		color: #fff;
+		text-decoration: none;
+		font-weight: bold;
+		border-radius: 4px;
+	}
+</style>
 </head>
 
 <body>
@@ -123,8 +123,11 @@
 				if (response.ok) {
 					responseBox.innerHTML = `
             ✅ <strong>${result.message}</strong><br>
-            <a class="download-link" href="${result.downloadUrl}" download target="_blank">
-              ⬇️ 點我下載 PDF
+            <a class="download-link" href="${result.quotationDownloadUrl}" download target="_blank">
+              ⬇️ 點我下載報價單 PDF
+            </a><br>
+            <a class="download-link" href="${result.contractDownloadUrl}" download target="_blank">
+              ⬇️ 點我下載合約 PDF
             </a>
           `;
 				} else {
