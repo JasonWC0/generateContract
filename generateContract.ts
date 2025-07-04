@@ -480,7 +480,7 @@ async function fillFormFields(
     if (!fs.existsSync(path.dirname(quotation.filePath))) {
       await fs.mkdirSync(path.dirname(quotation.filePath), { recursive: true });
     }
-    await fs.promises.writeFile(quotation.filePath, pdfBytes);
+    await fs.promises.writeFile(quotation.filePath.replace(/\\/g, '-'), pdfBytes);
 	return quotation.filePath.replace(/\\/g, '-')
   }
 }
