@@ -3,21 +3,24 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- 頁面標題（瀏覽器用） -->
+  <!-- 頁面標題 -->
   <title>LINE 縮圖測試頁面</title>
 
-  <!-- Open Graph 標籤（LINE 預覽主要靠這些） -->
+  <!-- Open Graph 標籤 (LINE 會用這些) -->
+  <meta property="og:title" content="這是一個測試標題">
+  <meta property="og:description" content="這是測試的描述文字，會顯示在 LINE 的連結預覽裡。">
   <meta property="og:image" content="https://jasonwc0.github.io/generateContract/public/test-1200x630.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://jasonwc0.github.io/generateContract/test.html">
+  <meta property="og:type" content="website">
 
-  <!-- 建議加上 Twitter Card（雖然 LINE 不一定用，但有些平台會用） -->
+  <!-- Twitter Card (LINE 也會參考，讓圖片放大) -->
   <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
   <h1>LINE 縮圖測試頁面</h1>
   <p>如果你看到這段文字，代表 HTML 已經正確部署。</p>
-  <p>實際在 LINE 裡貼網址時，應該會顯示上面設定的圖片 + 標題 + 描述。</p>
+  <p>實際在 LINE 貼網址時，應該會顯示大圖 (1200×630) + 標題 + 描述。</p>
 </body>
 </html>
