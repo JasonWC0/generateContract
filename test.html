@@ -1,1 +1,24 @@
-<!DOCTYPE html> <html lang="zh-Hant"> <head> <meta charset="UTF-8"> <!-- 網頁標題 --> <title>我的測試頁面</title> <!-- Open Graph 標籤 --> <meta property="og:title" content="這是一個測試標題"> <meta property="og:description" content="這是測試的描述文字，會顯示在 LINE 的連結預覽裡。"> <meta property="og:image" content="https://example.com/test-image.jpg"> <meta property="og:url" content="https://example.com/test.html"> <meta property="og:type" content="website"> <!-- 建議再加 Twitter Cards（部分平台也用） --> <meta name="twitter:card" content="summary_large_image"> </head> <body> <h1>我的測試頁面</h1> <p>這裡是內容，主要讓 LINE 預覽用的還是上面那些 meta 標籤。</p> </body> </html> 我如何測試這個尼
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- 頁面標題（瀏覽器用） -->
+  <title>LINE 縮圖測試頁面</title>
+
+  <!-- Open Graph 標籤（LINE 預覽主要靠這些） -->
+  <meta property="og:title" content="這是一個測試標題">
+  <meta property="og:description" content="這是測試的描述文字，會顯示在 LINE 的連結預覽裡。">
+  <meta property="og:image" content="https://picsum.photos/1200/630.jpg"> <!-- 隨機測試圖片 -->
+  <meta property="og:url" content="https://jasonwc0.github.io/generateContract/test.html">
+  <meta property="og:type" content="website">
+
+  <!-- 建議加上 Twitter Card（雖然 LINE 不一定用，但有些平台會用） -->
+  <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+  <h1>LINE 縮圖測試頁面</h1>
+  <p>如果你看到這段文字，代表 HTML 已經正確部署。</p>
+  <p>實際在 LINE 裡貼網址時，應該會顯示上面設定的圖片 + 標題 + 描述。</p>
+</body>
+</html>
